@@ -1,27 +1,49 @@
-console.log("Let's get this party started!");
 
-const form = document.querySelector('#searchform');
-const searchTerm = document.querySelector('#search')
+  const $gifArea = $('#gif-go-here');
+  const $searchTerm = $('#search');
 
-form.addEventListener('submit', function(e){
+
+  // get array of images from Giphy based on search term entered on form
+  $('form').on('submit', async function(e){
     e.preventDefault();
-    console.log(searchTerm.value);
-    getGif(searchTerm.value);
-    searchTerm.value = '';
+    let searchInput = $searchTerm.val();
+    // clear out input box
+    $searchTerm.val("");
+
+    // axios call
+    const response = await axios.get('http://api.giphy.com/v1/gifs/search', {
+      params: {
+        q: searchInput,
+        api_key: "MhAodEJIJxQMxW9XqxKjyXfNYdLoOIym"
+      }
+    });
+    // call method to put image in GIF div
+    addGif(response.data);
+  });
+
+  function addGif (response) {
+    let resultSize = response.data.length;
     
-})
+    // in case your search term isn't found, do nothing.
+    if (resultSize){
+      let randomImage = Math.floor(Math.random() * resultSize);
 
-async function getGif(search){
-    const result = await axios.get(`http://api.giphy.com/v1/gifs/search?q=${search}&api_key=MhAodEJIJxQMxW9XqxKjyXfNYdLoOIym`);
-    console.log(result.data.data[0].images.original.url);
-    const img = document.querySelector('#search-result');
-    img.src = result.data.data[1];
+      // building div and make it pretty
+      let $newDiv = $("<div class=\"col-md-4 col-12 mb-4\">");
+      // make img and drill down to gif url
+      let $newImg = $("<img>", {
+          src: response.data[randomImage].images.original.url,
+          class: "w-100"
+          
+      });
+      //connect img to div
+      $newDiv.append($newImg);
+      // now connect div+img and connect it to our gifArea results part
+      $gifArea.append($newDiv);
+    }
+  }
 
-    const div = document.createElement("div");
-    div.classList('#gif-goes-here');
-    div.appendChild(img);
-    // create div,, appendchild(img)
-
-}
-
-//getGif(searchTerm.value);
+  // clear out all the images
+  $('#remove').on('click', function(){
+    $gifArea.empty();
+  });
